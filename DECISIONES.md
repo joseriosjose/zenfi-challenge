@@ -40,6 +40,7 @@ interpreta al leer y el registro original queda intacto.
 | USD sin tipo de cambio | `txn_032` | Fuera de totales |
 | Traspaso interno | `txn_010` | No es gasto |
 | Reembolso | `txn_028` ↔ `txn_007` | Neteado dentro de `Compras` |
+| Monto en cero | `txn_036` | Se deja; no sé si es comisión exonerada o dato perdido |
 
 Leer el archivo tal cual da **−$73,993.75**; con reglas da **−$62,580.15**.
 Una diferencia de **$11,413.60, el 15%**.
@@ -55,6 +56,9 @@ Dos decisiones que quiero explicar:
 
 **Importes en enteros de centavos, no float.** No es teórico: en float el
 balance sale `-62580.149999999994`.
+
+El pipeline corre y da 52 incluidos, 9 excluidos, gasto $84,230.15, ingreso
+$21,650.00, `Compras` neteada en $5,983.00.
 
 ## Cómo usé IA
 
