@@ -82,6 +82,9 @@ export function Detalle({
             {movimiento.exclusion.motivo}
           </p>
           <p className="mt-1 text-body-sm text-ink-muted">
+            {movimiento.exclusion.detalle}
+          </p>
+          <p className="mt-1 text-body-sm text-ink-faint">
             No entra en tus totales de este mes. Lo decidió la regla{' '}
             {movimiento.exclusion.regla}.
           </p>

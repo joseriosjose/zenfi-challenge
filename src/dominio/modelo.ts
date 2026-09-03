@@ -89,17 +89,28 @@ export function aCentavos(monto: number | string): Centavos | null {
   return Math.round(valor * 100);
 }
 
-const FORMATO_MXN = new Intl.NumberFormat('es-MX', {
-  style: 'currency',
-  currency: 'MXN',
-});
+const FORMATOS = new Map<string, Intl.NumberFormat>(
+  ['MXN', 'USD'].map((currency) => [
+    currency,
+    new Intl.NumberFormat('es-MX', { style: 'currency', currency }),
+  ]),
+);
 
 /**
  * Formatear es operacion de dominio, no de presentacion: evita que un
  * `.toFixed(2)` se cuele dentro de un componente.
+ *
+ * Una moneda que no conocemos se escribe con su codigo en vez de disfrazarse
+ * de pesos. Es el mismo criterio que R09: sin tipo de cambio no se convierte.
  */
-export function formatearMXN(centavos: Centavos): string {
+export function formatearMonto(centavos: Centavos, moneda: string): string {
   // `-0 === 0` es true, asi que esto normaliza el cero negativo que sale de
   // negar una suma vacia y que Intl formatea como "-$0.00".
-  return FORMATO_MXN.format(centavos === 0 ? 0 : centavos / 100);
+  const valor = centavos === 0 ? 0 : centavos / 100;
+  const formato = FORMATOS.get(moneda);
+  return formato === undefined ? `${valor.toFixed(2)} ${moneda}` : formato.format(valor);
+}
+
+export function formatearMXN(centavos: Centavos): string {
+  return formatearMonto(centavos, MONEDA_BASE);
 }

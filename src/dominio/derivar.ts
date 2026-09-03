@@ -23,8 +23,27 @@ import type { OrigenCategoria, ReglaId, TipoMovimiento } from './reglas';
 import { leerExtracto } from './parsear';
 import type { Descarte } from './parsear';
 
-/** Por que un movimiento no entra en los totales. `null` = si entra. */
-export type Exclusion = { regla: ReglaId; motivo: string };
+/**
+ * Las unicas reglas que sacan algo de los totales. El resto del pipeline
+ * repara, clasifica o define alcance, pero nunca excluye: dejarlas fuera del
+ * tipo evita mapas con entradas que no pueden ocurrir.
+ */
+export type ReglaExclusion = Extract<ReglaId, 'R04a' | 'R06' | 'R08' | 'R09'>;
+
+/**
+ * Por que un movimiento no entra en los totales. `null` = si entra.
+ *
+ * El texto vive aqui y no en la pantalla porque depende de datos que solo el
+ * dominio interpreta —el `estado` que manda el banco, por ejemplo—. Repetir
+ * ese vocabulario en la UI seria mantener la misma regla en dos lugares.
+ */
+export type Exclusion = {
+  regla: ReglaExclusion;
+  /** Etiqueta corta. Cabe en un renglon de lista. */
+  motivo: string;
+  /** Una frase que explica el motivo sin citar la regla. */
+  detalle: string;
+};
 
 export type Movimiento = {
   /** El registro tal como lo mando el banco. Nunca se muta. */
@@ -180,7 +199,13 @@ function marcarDuplicados(movimientos: Movimiento[]): void {
     const conservado = grupo.find((m) => estaConfirmado(m.estado)) ?? grupo[0];
     for (const m of grupo) {
       if (m === conservado || m.exclusion !== null) continue;
-      m.exclusion = { regla: 'R06', motivo: 'Posible cargo repetido' };
+      m.exclusion = {
+        regla: 'R06',
+        motivo: 'Posible cargo repetido',
+        // La clave del grupo incluye la fecha-hora exacta, asi que el gemelo
+        // siempre cae en el mismo instante: la frase no necesita formatearla.
+        detalle: 'Hay otro cargo idéntico el mismo día y a la misma hora.',
+      };
     }
   }
 }
@@ -207,17 +232,42 @@ function enPeriodo(crudo: MovimientoCrudo, periodo: string): boolean {
  * cuenta", no "es de otro mes".
  */
 function calcularExclusion(m: Movimiento): Exclusion | null {
-  if (m.tipo === 'traspaso') return { regla: 'R04a', motivo: 'Traspaso entre tus cuentas' };
-  if (!estaConfirmado(m.estado)) {
-    const motivo =
-      m.estado === 'en_disputa'
-        ? 'En disputa'
-        : m.estado === 'programada'
-          ? 'Programado, todavía no se cobra'
-          : 'Pendiente de confirmar';
-    return { regla: 'R08', motivo };
+  if (m.tipo === 'traspaso') {
+    return {
+      regla: 'R04a',
+      motivo: 'Traspaso entre tus cuentas',
+      detalle:
+        'Moviste dinero entre cuentas tuyas. Los consumos de esa tarjeta ya están contados uno por uno.',
+    };
   }
-  if (m.original.moneda !== MONEDA_BASE) return { regla: 'R09', motivo: 'Falta tipo de cambio' };
+  if (!estaConfirmado(m.estado)) {
+    if (m.estado === 'en_disputa') {
+      return {
+        regla: 'R08',
+        motivo: 'En disputa',
+        detalle: 'Está en disputa con tu banco. No cuenta hasta que se resuelva.',
+      };
+    }
+    if (m.estado === 'programada') {
+      return {
+        regla: 'R08',
+        motivo: 'Programado, todavía no se cobra',
+        detalle: 'Está agendado para una fecha futura. El dinero todavía no sale.',
+      };
+    }
+    return {
+      regla: 'R08',
+      motivo: 'Pendiente de confirmar',
+      detalle: 'Tu banco todavía no confirma este cargo. Puede cambiar de monto o no cobrarse.',
+    };
+  }
+  if (m.original.moneda !== MONEDA_BASE) {
+    return {
+      regla: 'R09',
+      motivo: 'Falta tipo de cambio',
+      detalle: `Llegó en ${m.original.moneda} y tu banco no envió a cuánto estaba ese día.`,
+    };
+  }
   return null;
 }
 
@@ -307,7 +357,14 @@ export function derivar(ajustes: AjustesUsuario, periodoElegido: string): Period
       m.categoria = elegida;
       m.origenCategoria = 'usuario';
     }
-    if (ajustes.incluir[m.id] === true) m.exclusion = null;
+    if (ajustes.incluir[m.id] === true) {
+      m.exclusion = null;
+      // Un traspaso que el usuario mete a mano deja de ser traspaso: esta
+      // diciendo que ese dinero si salio de su bolsillo. Sin esto la
+      // exclusion desaparece de la lista pero el total no se mueve, que es
+      // justo la clase de mentira que esta pantalla existe para evitar.
+      if (m.tipo === 'traspaso') m.tipo = m.centavos > 0 ? 'ingreso' : 'gasto';
+    }
   }
 
   return {

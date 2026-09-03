@@ -17,26 +17,7 @@ import {
 import type { Filtros } from '../dominio/lista';
 import { SIN_FILTROS } from '../dominio/lista';
 import { estiloDe } from '../ui/categorias';
-
-const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-const MESES = [
-  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
-];
-
-/** El dia se arma con los numeros del ISO local, sin pasar por el huso del navegador. */
-function etiquetaDeDia(dia: string): string {
-  const anio = Number(dia.slice(0, 4));
-  const mes = Number(dia.slice(5, 7)) - 1;
-  const numero = Number(dia.slice(8, 10));
-  const nombre = DIAS[new Date(anio, mes, numero).getDay()] ?? '';
-  return `${nombre} ${numero} de ${MESES[mes] ?? ''}`;
-}
-
-function etiquetaDeMes(periodo: string): string {
-  const nombre = MESES[Number(periodo.slice(5, 7)) - 1] ?? periodo;
-  return `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${periodo.slice(0, 4)}`;
-}
+import { etiquetaDeDia, etiquetaDeMes } from '../ui/fechas';
 
 function nombreDeCuenta(cuenta: string | null): string {
   return cuenta ?? 'Sin cuenta';

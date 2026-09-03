@@ -8,25 +8,7 @@ import type { MesDisponible, Movimiento } from '../dominio/derivar';
 import { agruparOtras, masRecientes, titularDelMes } from '../dominio/resumen';
 import type { GastoPorCategoria, Otras, Resumen as ResumenDelMes } from '../dominio/resumen';
 import { ESTILO_OTRAS, estiloDe } from '../ui/categorias';
-
-const MESES = [
-  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
-];
-
-function nombreDelMes(periodo: string): string {
-  const mes = Number(periodo.slice(5, 7));
-  return MESES[mes - 1] ?? periodo;
-}
-
-function etiquetaDeMes(periodo: string): string {
-  const nombre = nombreDelMes(periodo);
-  return `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${periodo.slice(0, 4)}`;
-}
-
-function dia(fecha: Date): string {
-  return `${fecha.getDate()} ${MESES[fecha.getMonth()]?.slice(0, 3) ?? ''}`;
-}
+import { diaCorto, etiquetaDeMes, nombreDelMes } from '../ui/fechas';
 
 function Chevron({ abierto }: { abierto: boolean }) {
   return (
@@ -281,16 +263,25 @@ function Desglose({ resumen }: { resumen: ResumenDelMes }) {
 
 /* ------------------------------------------------------------------ */
 
-function TiraExcluidos({ excluidos }: { excluidos: Movimiento[] }) {
+function TiraExcluidos({
+  excluidos,
+  onAbrir,
+}: {
+  excluidos: Movimiento[];
+  onAbrir: () => void;
+}) {
   if (excluidos.length === 0) return null;
 
-  // Los motivos distintos, no los 9 renglones: el detalle es de su propia
-  // vista, que todavia no existe.
+  // Los motivos distintos, no los siete renglones: el detalle es de su vista.
   const motivos = [...new Set(excluidos.map((m) => m.exclusion?.motivo ?? ''))];
 
   return (
     <section className="mx-4 mt-4">
-      <div className="flex items-center gap-2.5 rounded-[14px] bg-revisar/8 px-3.5 py-3 inset-ring inset-ring-revisar/20">
+      <button
+        type="button"
+        onClick={onAbrir}
+        className="flex w-full items-center gap-2.5 rounded-[14px] bg-revisar/8 px-3.5 py-3 text-left inset-ring inset-ring-revisar/20"
+      >
         <span className="grid size-5 shrink-0 place-items-center rounded-full bg-revisar/18 font-mono text-[11px] font-bold text-revisar">
           i
         </span>
@@ -304,7 +295,8 @@ function TiraExcluidos({ excluidos }: { excluidos: Movimiento[] }) {
             {motivos.slice(0, 3).join(' · ')}
           </span>
         </span>
-      </div>
+        <span className="ml-auto shrink-0 text-revisar">›</span>
+      </button>
     </section>
   );
 }
@@ -343,7 +335,7 @@ function FilaMovimiento({
           </span>
           <span className="mt-0.5 flex items-center gap-1.5 text-body-sm text-ink-faint">
             {ajustado && <span className="size-1.5 shrink-0 rounded-full bg-revisar" />}
-            {movimiento.categoria} · {dia(movimiento.fecha)}
+            {movimiento.categoria} · {diaCorto(movimiento.fecha)}
           </span>
         </span>
       </span>
@@ -366,6 +358,7 @@ export function Resumen({
   onElegirMes,
   onAbrirMovimiento,
   onVerTodos,
+  onVerExcluidos,
 }: {
   resumen: ResumenDelMes;
   periodo: string;
@@ -373,6 +366,7 @@ export function Resumen({
   onElegirMes: (periodo: string) => void;
   onAbrirMovimiento: (id: string) => void;
   onVerTodos: () => void;
+  onVerExcluidos: () => void;
 }) {
   const visibles = masRecientes(resumen.incluidos, 5);
 
@@ -384,7 +378,7 @@ export function Resumen({
 
       <Encabezado resumen={resumen} periodo={periodo} meses={meses} onElegirMes={onElegirMes} />
       <Desglose resumen={resumen} />
-      <TiraExcluidos excluidos={resumen.excluidos} />
+      <TiraExcluidos excluidos={resumen.excluidos} onAbrir={onVerExcluidos} />
 
       <section className="card mx-4 mt-4">
         <div className="flex items-center justify-between pb-3">

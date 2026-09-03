@@ -1,11 +1,12 @@
 /**
- * Navegacion entre las dos vistas y el unico estado de la app: los ajustes
- * del usuario. Todo lo derivado se recalcula, no se guarda (regla 5).
+ * Navegacion entre las pantallas y el unico estado de la app: los ajustes del
+ * usuario. Todo lo derivado se recalcula, no se guarda (regla 5).
  */
 import { useMemo, useState } from 'react';
 import { AJUSTES_VACIOS, calendario, derivar } from './dominio/derivar';
 import type { AjustesUsuario } from './dominio/derivar';
 import type { Categoria } from './dominio/modelo';
+import { conciliar } from './dominio/conciliacion';
 import { resumir } from './dominio/resumen';
 import { SIN_FILTROS } from './dominio/lista';
 import type { Filtros } from './dominio/lista';
@@ -13,12 +14,15 @@ import { MarcoDispositivo } from './ui/MarcoDispositivo';
 import { Resumen } from './pantallas/Resumen';
 import { Detalle } from './pantallas/Detalle';
 import { Movimientos } from './pantallas/Movimientos';
+import { Excluidos } from './pantallas/Excluidos';
+import { etiquetaDeMes } from './ui/fechas';
 
-type Origen = 'resumen' | 'movimientos';
+type Origen = 'resumen' | 'movimientos' | 'excluidos';
 
 type Vista =
   | { nombre: 'resumen' }
   | { nombre: 'movimientos' }
+  | { nombre: 'excluidos' }
   /** Recuerda de donde vino para que el boton de volver regrese ahi. */
   | { nombre: 'detalle'; id: string; origen: Origen };
 
@@ -31,6 +35,7 @@ const App = () => {
 
   const periodo = useMemo(() => derivar(ajustes, mes), [ajustes, mes]);
   const resumen = useMemo(() => resumir(periodo), [periodo]);
+  const conciliacion = useMemo(() => conciliar(periodo), [periodo]);
 
   const cambiarCategoria = (id: string, categoria: Categoria) => {
     setAjustes((previo) => ({
@@ -64,6 +69,17 @@ const App = () => {
           onElegirMes={elegirMes}
           onAbrirMovimiento={(id) => setVista({ nombre: 'detalle', id, origen: 'resumen' })}
           onVerTodos={() => setVista({ nombre: 'movimientos' })}
+          onVerExcluidos={() => setVista({ nombre: 'excluidos' })}
+        />
+      )}
+
+      {vista.nombre === 'excluidos' && (
+        <Excluidos
+          conciliacion={conciliacion}
+          nombreDelMes={etiquetaDeMes(periodo.periodo)}
+          onVolver={() => setVista({ nombre: 'resumen' })}
+          onAbrirMovimiento={(id) => setVista({ nombre: 'detalle', id, origen: 'excluidos' })}
+          onIncluir={incluir}
         />
       )}
 
