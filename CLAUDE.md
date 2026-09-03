@@ -47,3 +47,35 @@ motivo escrito — que sea visible es justamente el punto.
 - Props en un `type` exportado y con nombre. Nada de `React.FC`.
 - Clases de Tailwind siempre literales: el escaneo es de texto plano, así que
   `` `bg-${color}-600` `` no genera nada. Usa un mapa de clases completas.
+
+## Arquitectura de componentes
+
+Las capas se separan por **qué tiene derecho a saber cada una**, no por tamaño.
+No clasifiques por átomo/molécula/organismo: esa taxonomía no converge.
+
+**Los props dicen la capa.** Se revisa leyendo la firma, sin abrir el cuerpo:
+
+| Props | Capa | No puede |
+|---|---|---|
+| `string`, `number`, `boolean`, `children` | Primitivo | Nombrar una entidad del negocio |
+| Un objeto del modelo (`movimiento`, `item`) | Dominio (UI) | Hooks, tocar la fuente, calcular |
+| Ninguno, o parámetros de ruta | Pantalla | Calcular lo que toca al dominio |
+
+Las funciones de negocio puras no son UI y no importan nada de UI.
+
+1. **Una sola puerta a la fuente.** `movimientos.json` se importa en un lugar;
+   el resto recibe el resultado ya normalizado.
+2. **El modelo entra completo:** `<Fila movimiento={m} />`, no desarmado en
+   props sueltos.
+3. **Un mapa por enum, en un archivo.** Nunca un `switch` repartido.
+4. **Composición, no configuración.** `children` en vez de una lista más un
+   flag. Un prop que cambia la *estructura* son dos componentes disfrazados
+   de uno; uno que solo cambia color o tamaño está bien.
+5. **Lo derivado se deriva**, no se guarda en estado.
+6. **Agregar es dominio.** Si escribes un `if` o una aritmética sobre un valor
+   de negocio dentro de un componente, esa línea está en la capa equivocada.
+
+Un primitivo se crea cuando **la segunda** pantalla lo pide, no antes.
+Nada de `memo`/`useCallback` preventivo ni carpetas `hooks/` `utils/` `types/`.
+
+Racional completo, anti-patrones y prueba de aislamiento: `docs/ARQUITECTURA.md`.
