@@ -88,8 +88,82 @@ const etiqueta = (
   </svg>
 );
 
-/** Las 6 categorias con identidad propia en el diseño; el resto cae en `otras`. */
-const ESTILOS: Partial<Record<Categoria, Estilo>> = {
+const coche = (
+  <svg viewBox="0 0 24 24" className="size-5" {...trazo}>
+    <path d="M4 16v-3l2-5h12l2 5v3" />
+    <path d="M3 16h18v3h-3v-3M6 19H3v-3" />
+    <circle cx="7.5" cy="16" r="1.1" />
+    <circle cx="16.5" cy="16" r="1.1" />
+  </svg>
+);
+
+const cruz = (
+  <svg viewBox="0 0 24 24" className="size-5" {...trazo}>
+    <rect x="4" y="4" width="16" height="16" rx="4" />
+    <path d="M12 8.5v7M8.5 12h7" />
+  </svg>
+);
+
+const rayo = (
+  <svg viewBox="0 0 24 24" className="size-5" {...trazo}>
+    <path d="M13 3 5 13.5h6L11 21l8-10.5h-6L13 3Z" />
+  </svg>
+);
+
+const calendario = (
+  <svg viewBox="0 0 24 24" className="size-5" {...trazo}>
+    <rect x="3.5" y="5" width="17" height="15" rx="3" />
+    <path d="M3.5 10h17M8 3v4M16 3v4" />
+  </svg>
+);
+
+const claqueta = (
+  <svg viewBox="0 0 24 24" className="size-5" {...trazo}>
+    <rect x="3" y="6" width="18" height="14" rx="3" />
+    <path d="M3 11h18M8.5 6l-2 5M14 6l-2 5" />
+  </svg>
+);
+
+const escudo = (
+  <svg viewBox="0 0 24 24" className="size-5" {...trazo}>
+    <path d="M12 3.5 5 6v6c0 4 3 7.2 7 8.5 4-1.3 7-4.5 7-8.5V6l-7-2.5Z" />
+  </svg>
+);
+
+const avion = (
+  <svg viewBox="0 0 24 24" className="size-5" {...trazo}>
+    <path d="M10.5 3.5a1.5 1.5 0 0 1 3 0V9l7 4v2l-7-2v4l2.5 2v1.5L12 19l-4 1.5V19l2.5-2v-4l-7 2v-2l7-4V3.5Z" />
+  </svg>
+);
+
+const entrada = (
+  <svg viewBox="0 0 24 24" className="size-5" {...trazo}>
+    <path d="M12 20V5M6.5 10.5 12 5l5.5 5.5" />
+  </svg>
+);
+
+const tarjeta = (
+  <svg viewBox="0 0 24 24" className="size-5" {...trazo}>
+    <rect x="3" y="5.5" width="18" height="13" rx="3" />
+    <path d="M3 10h18M6.5 15h3" />
+  </svg>
+);
+
+const porcentaje = (
+  <svg viewBox="0 0 24 24" className="size-5" {...trazo}>
+    <path d="M6.5 17.5 17.5 6.5" />
+    <circle cx="8" cy="8" r="2.2" />
+    <circle cx="16" cy="16" r="2.2" />
+  </svg>
+);
+
+/**
+ * Todas las categorias, no solo las del resumen: la hoja para corregir la
+ * categoria las muestra a las 17 juntas, y once grises iguales no se pueden
+ * distinguir de un vistazo. `Sin categoria` comparte el estilo neutro a
+ * proposito — es la ausencia de categoria, no una mas.
+ */
+const ESTILOS: Record<Categoria, Estilo> = {
   Vivienda: {
     barra: 'bg-cat-vivienda',
     fondo: 'bg-cat-vivienda/12',
@@ -126,6 +200,72 @@ const ESTILOS: Partial<Record<Categoria, Estilo>> = {
     texto: 'text-cat-comida',
     icono: cubiertos,
   },
+  Transporte: {
+    barra: 'bg-cat-transporte',
+    fondo: 'bg-cat-transporte/12',
+    texto: 'text-cat-transporte',
+    icono: coche,
+  },
+  Salud: {
+    barra: 'bg-cat-salud',
+    fondo: 'bg-cat-salud/12',
+    texto: 'text-cat-salud',
+    icono: cruz,
+  },
+  Servicios: {
+    barra: 'bg-cat-servicios',
+    fondo: 'bg-cat-servicios/12',
+    texto: 'text-cat-servicios',
+    icono: rayo,
+  },
+  Suscripciones: {
+    barra: 'bg-cat-suscripciones',
+    fondo: 'bg-cat-suscripciones/12',
+    texto: 'text-cat-suscripciones',
+    icono: calendario,
+  },
+  Entretenimiento: {
+    barra: 'bg-cat-entretenimiento',
+    fondo: 'bg-cat-entretenimiento/12',
+    texto: 'text-cat-entretenimiento',
+    icono: claqueta,
+  },
+  Seguros: {
+    barra: 'bg-cat-seguros',
+    fondo: 'bg-cat-seguros/12',
+    texto: 'text-cat-seguros',
+    icono: escudo,
+  },
+  Viajes: {
+    barra: 'bg-cat-viajes',
+    fondo: 'bg-cat-viajes/12',
+    texto: 'text-cat-viajes',
+    icono: avion,
+  },
+  Ingresos: {
+    barra: 'bg-cat-ingresos',
+    fondo: 'bg-cat-ingresos/12',
+    texto: 'text-cat-ingresos',
+    icono: entrada,
+  },
+  Pagos: {
+    barra: 'bg-cat-pagos',
+    fondo: 'bg-cat-pagos/12',
+    texto: 'text-cat-pagos',
+    icono: tarjeta,
+  },
+  Comisiones: {
+    barra: 'bg-cat-comisiones',
+    fondo: 'bg-cat-comisiones/12',
+    texto: 'text-cat-comisiones',
+    icono: porcentaje,
+  },
+  'Sin categoría': {
+    barra: 'bg-cat-otras',
+    fondo: 'bg-cat-otras/12',
+    texto: 'text-cat-otras',
+    icono: etiqueta,
+  },
 };
 
 const OTRAS: Estilo = {
@@ -136,7 +276,7 @@ const OTRAS: Estilo = {
 };
 
 export function estiloDe(categoria: Categoria): Estilo {
-  return ESTILOS[categoria] ?? OTRAS;
+  return ESTILOS[categoria];
 }
 
 export { OTRAS as ESTILO_OTRAS };

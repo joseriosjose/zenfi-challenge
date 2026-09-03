@@ -86,6 +86,16 @@
   --color-cat-transferencias: #eda100;
   --color-cat-efectivo: #7c6bc4;
   --color-cat-comida: #e0567f;
+  --color-cat-transporte: #2f9e8f;
+  --color-cat-salud: #d9534f;
+  --color-cat-servicios: #7a9c1f;
+  --color-cat-suscripciones: #9c4fc4;
+  --color-cat-entretenimiento: #c94f9c;
+  --color-cat-seguros: #2b7a6b;
+  --color-cat-viajes: #1f8fc4;
+  --color-cat-ingresos: #157f4a;
+  --color-cat-pagos: #6b7280;
+  --color-cat-comisiones: #a15c2b;
   --color-cat-otras: #8b948e;
 
   /* --- Estados de auditoria ------------------------------------------- */

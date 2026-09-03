@@ -19,18 +19,24 @@ decisión y lo que espera al banco. El botón para incluirlo aparece solo en el
 grupo de en medio — ofrecerlo cuatro veces bajo "entran solos cuando se
 resuelvan" se contradice con su propio grupo.
 
-**Detalle.** Cambiar categoría, el registro original sin tocar, y —si una
-regla lo excluyó— el motivo con la opción de incluirlo de todos modos.
+**Movimiento.** El editor. Nombre, categoría, nota, importe, cargo/abono,
+tipo de cambio y tipo de movimiento. Si una regla tocó el movimiento, dice
+cuál y con qué evidencia —*"tus otros 2 cargos de DIDI MOBILITY están en
+Transporte"*— y ofrece deshacerla. Es un borrador: se guarda de una vez, y
+cada campo solo se guarda si difiere de lo que dijeron las reglas, así
+guardar sin cambiar nada no marca el movimiento como corregido.
 
 - Las reglas se divulgan en **un solo lugar**: la tira "N movimientos
   excluidos del cálculo" y la pantalla que abre. Seis flujos separados no
   cabían.
 - **Selector de mes** con solo los meses que la data tiene: ago 2026 (59),
   sep 2026 (1) y nov 2025 (1).
-- **Fuera:** tipo de cambio, control Cargo/Abono, confirmar duplicados,
-  preview "tu gasto sube de X a Y", el toggle "Por categoría" y la nav
-  inferior con Metas/Perfil. Las reglas que los motivan sí están
-  implementadas; lo que no construí son sus pantallas.
+- **El tipo de cambio cierra R09.** Es el único caso donde el usuario tiene un
+  dato que al banco le faltó: lo escribe y el cargo en USD entra al mes
+  convertido. $12.00 × 18.90 = $226.80.
+- **Fuera:** confirmar duplicados ("sí, es repetido" no movería ningún
+  número), crear categorías, la regla "aplicar a los próximos cargos de este
+  comercio", el toggle "Por categoría" y la nav inferior con Metas/Perfil.
 - Sin persistencia: las correcciones viven en memoria y se pierden al recargar.
 
 ## Supuestos
@@ -41,6 +47,9 @@ regla lo excluyó— el motivo con la opción de incluirlo de todos modos.
   sí se ve. Un balance no debe moverse por dinero que aún no salió.
 - **Un retiro de cajero es gasto.** Traslada dinero, no lo consume, pero el
   usuario perdió visibilidad de él. `Efectivo` queda como categoría ciega.
+- **Renombrar no reagrupa.** El alias es para que el usuario lo reconozca; el
+  consenso por comercio sigue leyendo la descripción del banco. Si no, un
+  renombre movería sin querer la categoría de otros cargos.
 - **Un pago de tarjeta propia no es gasto**: sus consumos ya están uno por uno
   en el mismo archivo. Contarlo cobraría dos veces. Si el usuario lo incluye a
   mano deja de ser traspaso: si no, la exclusión desaparece de la lista y el
@@ -111,12 +120,17 @@ en $5,983.00.
 - En la pantalla de exclusiones detectó que el mock decía 9 movimientos y
   $15,428.00 porque venía del modelo anterior a mover R07 a alcance, y que el
   botón "sí es un gasto" del traspaso vaciaba el grupo sin mover el total.
+- El mock del detalle de DIDI mezclaba tres registros: encabezado de `txn_027`,
+  la historia de "ajustado por regla" de `txn_005` y el id de `txn_023`. La
+  evidencia del mock —"tus otros 2 cargos"— era correcta, pero de otro
+  movimiento.
 
 ## Qué haría con una semana más
 
-- Tipo de cambio real para el movimiento en USD, hoy la única exclusión que se
-  ofrece resolver a medias.
+- "Aplicar a los próximos cargos de este comercio": convertir una corrección
+  en regla es lo que haría que la app dejara de equivocarse dos veces igual.
 - Persistir las correcciones y aprender de ellas: hoy viven en memoria.
+- Tipo de cambio automático por fecha, en vez de pedírselo al usuario.
 - Reembolsos parciales: hoy solo ligo montos idénticos.
 
 ## Tiempo invertido

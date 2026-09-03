@@ -3,9 +3,8 @@
  * usuario. Todo lo derivado se recalcula, no se guarda (regla 5).
  */
 import { useMemo, useState } from 'react';
-import { AJUSTES_VACIOS, calendario, derivar } from './dominio/derivar';
-import type { AjustesUsuario } from './dominio/derivar';
-import type { Categoria } from './dominio/modelo';
+import { AJUSTE_VACIO, AJUSTES_VACIOS, ajusteVacio, calendario, derivar } from './dominio/derivar';
+import type { AjusteMovimiento, AjustesUsuario } from './dominio/derivar';
 import { conciliar } from './dominio/conciliacion';
 import { resumir } from './dominio/resumen';
 import { SIN_FILTROS } from './dominio/lista';
@@ -37,15 +36,26 @@ const App = () => {
   const resumen = useMemo(() => resumir(periodo), [periodo]);
   const conciliacion = useMemo(() => conciliar(periodo), [periodo]);
 
-  const cambiarCategoria = (id: string, categoria: Categoria) => {
-    setAjustes((previo) => ({
-      ...previo,
-      categorias: { ...previo.categorias, [id]: categoria },
-    }));
+  /**
+   * La unica escritura de la app. Un ajuste que no cambia nada se borra en vez
+   * de guardarse vacio: asi "restaurar" y "nunca lo toque" son el mismo
+   * estado, y no hay dos formas de representar lo mismo.
+   */
+  const ajustar = (id: string, cambio: Partial<AjusteMovimiento>) => {
+    setAjustes((previo) => {
+      const fusionado: AjusteMovimiento = { ...(previo[id] ?? AJUSTE_VACIO), ...cambio };
+      const resto = Object.fromEntries(
+        Object.entries(previo).filter(([clave]) => clave !== id),
+      );
+      return ajusteVacio(fusionado) ? resto : { ...resto, [id]: fusionado };
+    });
   };
 
-  const incluir = (id: string) => {
-    setAjustes((previo) => ({ ...previo, incluir: { ...previo.incluir, [id]: true } }));
+  /** Descarta todas las correcciones de un movimiento de una sola vez. */
+  const restaurar = (id: string) => {
+    setAjustes((previo) =>
+      Object.fromEntries(Object.entries(previo).filter(([clave]) => clave !== id)),
+    );
   };
 
   const seleccionado =
@@ -79,7 +89,7 @@ const App = () => {
           nombreDelMes={etiquetaDeMes(periodo.periodo)}
           onVolver={() => setVista({ nombre: 'resumen' })}
           onAbrirMovimiento={(id) => setVista({ nombre: 'detalle', id, origen: 'excluidos' })}
-          onIncluir={incluir}
+          onIncluir={(id) => ajustar(id, { incluir: true })}
         />
       )}
 
@@ -101,8 +111,9 @@ const App = () => {
         <Detalle
           movimiento={seleccionado}
           onVolver={() => setVista({ nombre: vista.origen })}
-          onCambiarCategoria={cambiarCategoria}
-          onIncluir={incluir}
+          ajuste={ajustes[vista.id] ?? AJUSTE_VACIO}
+          onAjustar={ajustar}
+          onRestaurar={restaurar}
         />
       )}
     </MarcoDispositivo>
