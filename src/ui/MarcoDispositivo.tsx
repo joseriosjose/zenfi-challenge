@@ -22,9 +22,16 @@ export function MarcoDispositivo({
 
   return (
     <div className="flex min-h-dvh justify-center bg-ground py-0 sm:bg-hairline sm:py-8">
+      {/*
+        `transform-gpu` no es por rendimiento: un elemento con transform se
+        vuelve el bloque contenedor de sus descendientes `fixed`. Sin esto, un
+        bottom sheet con `fixed` se anclaria a la ventana del navegador y se
+        saldria del marco; con `absolute` se anclaria al final del contenido
+        scrolleable y quedaria muy por debajo de lo visible.
+      */}
       <div
         className="
-          relative flex w-full max-w-[390px] flex-col overflow-hidden bg-ground
+          relative flex w-full max-w-[390px] transform-gpu flex-col overflow-hidden bg-ground
           sm:h-[844px] sm:rounded-[44px] sm:border-[10px] sm:border-ink sm:shadow-sheet
         "
       >

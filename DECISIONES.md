@@ -7,6 +7,12 @@ mitad se te fue en Vivienda"*. Es el requisito de los 10 segundos — con 14
 categorías, la renta (58%) queda escondida como una rebanada más si solo
 pongo una gráfica. Debajo, entró y balance; luego el desglose y la lista.
 
+**Movimientos.** Lista completa del mes agrupada por día, con el total de
+cada día sumando **solo lo que cuenta**. Los excluidos se ven tachados con su
+motivo, no se esconden. Filtros por categoría y cuenta, y búsqueda por
+concepto. Las opciones del panel salen de los datos en alcance, no de una
+lista fija: así ninguna categoría se pierde y los conteos nunca mienten.
+
 **Detalle.** Cambiar categoría, el registro original sin tocar, y —si una
 regla lo excluyó— el motivo con la opción de incluirlo de todos modos.
 
@@ -15,8 +21,9 @@ regla lo excluyó— el motivo con la opción de incluirlo de todos modos.
 - **Selector de mes** con solo los meses que la data tiene: ago 2026 (59),
   sep 2026 (1) y nov 2025 (1).
 - **Fuera:** tipo de cambio, control Cargo/Abono, confirmar duplicados,
-  preview "tu gasto sube de X a Y", selector de mes y nav inferior. Las reglas
-  que los motivan sí están implementadas; lo que no construí son sus pantallas.
+  preview "tu gasto sube de X a Y", el toggle "Por categoría" y la nav
+  inferior con Metas/Perfil. Las reglas que los motivan sí están
+  implementadas; lo que no construí son sus pantallas.
 - Sin persistencia: las correcciones viven en memoria y se pierden al recargar.
 
 ## Supuestos

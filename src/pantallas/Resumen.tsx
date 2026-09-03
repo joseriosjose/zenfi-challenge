@@ -311,7 +311,7 @@ function TiraExcluidos({ excluidos }: { excluidos: Movimiento[] }) {
 
 /* ------------------------------------------------------------------ */
 
-export function FilaMovimiento({
+function FilaMovimiento({
   movimiento,
   onAbrir,
 }: {
@@ -365,15 +365,16 @@ export function Resumen({
   meses,
   onElegirMes,
   onAbrirMovimiento,
+  onVerTodos,
 }: {
   resumen: ResumenDelMes;
   periodo: string;
   meses: MesDisponible[];
   onElegirMes: (periodo: string) => void;
   onAbrirMovimiento: (id: string) => void;
+  onVerTodos: () => void;
 }) {
-  const [todos, setTodos] = useState(false);
-  const visibles = todos ? masRecientes(resumen.incluidos, 999) : masRecientes(resumen.incluidos, 5);
+  const visibles = masRecientes(resumen.incluidos, 5);
 
   return (
     <div className="pb-8">
@@ -388,12 +389,8 @@ export function Resumen({
       <section className="card mx-4 mt-4">
         <div className="flex items-center justify-between pb-3">
           <h2 className="text-headline-sm">Movimientos recientes</h2>
-          <button
-            type="button"
-            onClick={() => setTodos((v) => !v)}
-            className="text-body-md font-semibold text-jade"
-          >
-            {todos ? 'Ver menos' : 'Ver todos'}
+          <button type="button" onClick={onVerTodos} className="text-body-md font-semibold text-jade">
+            Ver todos
           </button>
         </div>
         {visibles.length === 0 ? (

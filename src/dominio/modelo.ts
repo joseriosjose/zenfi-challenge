@@ -61,19 +61,6 @@ export function esCategoria(valor: unknown): valor is Categoria {
   return typeof valor === 'string' && CATEGORIAS.some((c) => c === valor);
 }
 
-/**
- * Estados que el origen usa hoy. `estado` se guarda como string en el crudo:
- * un estado desconocido no debe hacer desaparecer un movimiento real, se
- * trata como no confirmado (R08) y sigue visible.
- */
-export const ESTADOS = ['confirmada', 'pendiente', 'en_disputa', 'programada'] as const;
-
-export type Estado = (typeof ESTADOS)[number];
-
-export function esEstado(valor: unknown): valor is Estado {
-  return typeof valor === 'string' && ESTADOS.some((e) => e === valor);
-}
-
 /** Los unicos estados en los que el dinero ya se movio en firme. */
 export function estaConfirmado(estado: string): boolean {
   return estado === 'confirmada';

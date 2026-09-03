@@ -62,7 +62,7 @@ export function comercioRaiz(descripcion: string): string {
 }
 
 /** R05 (parte pura) — la descripcion se anuncia como devolucion. */
-export function pareceReembolso(descripcion: string): boolean {
+function pareceReembolso(descripcion: string): boolean {
   const texto = normalizarTexto(descripcion);
   return PREFIJOS_REEMBOLSO.some((prefijo) => texto.startsWith(prefijo));
 }
@@ -111,7 +111,7 @@ export function categoriaDelBanco(crudo: MovimientoCrudo): Categoria | null {
 }
 
 /** R04a — pago a una tarjeta propia. Sus consumos ya estan en el archivo uno por uno. */
-export function esTraspasoInterno(descripcion: string): boolean {
+function esTraspasoInterno(descripcion: string): boolean {
   const texto = normalizarTexto(descripcion);
   return texto.startsWith('PAGO TARJETA') || texto.startsWith('PAGO TDC');
 }
