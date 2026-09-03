@@ -5,6 +5,7 @@
 import { useMemo, useState } from 'react';
 import { AJUSTE_VACIO, AJUSTES_VACIOS, ajusteVacio, calendario, derivar } from './dominio/derivar';
 import type { AjusteMovimiento, AjustesUsuario } from './dominio/derivar';
+import type { Categoria } from './dominio/modelo';
 import { conciliar } from './dominio/conciliacion';
 import { resumir } from './dominio/resumen';
 import { SIN_FILTROS } from './dominio/lista';
@@ -63,6 +64,16 @@ const App = () => {
       ? periodo.movimientos.find((m) => m.id === vista.id) ?? null
       : null;
 
+  /**
+   * Un renglon del desglose es una pregunta ("¿en qué se me fue en Comida?"),
+   * y la respuesta es la lista filtrada. Los filtros se reemplazan, no se
+   * acumulan: el renglon dice exactamente que se va a ver.
+   */
+  const verCategorias = (categorias: Categoria[]) => {
+    setFiltros({ ...SIN_FILTROS, categorias });
+    setVista({ nombre: 'movimientos' });
+  };
+
   const elegirMes = (nuevo: string) => {
     setMes(nuevo);
     // Los filtros son del mes que se estaba viendo: cambiar de mes los limpia.
@@ -78,7 +89,11 @@ const App = () => {
           meses={meses.meses}
           onElegirMes={elegirMes}
           onAbrirMovimiento={(id) => setVista({ nombre: 'detalle', id, origen: 'resumen' })}
-          onVerTodos={() => setVista({ nombre: 'movimientos' })}
+          onVerTodos={() => {
+            setFiltros(SIN_FILTROS);
+            setVista({ nombre: 'movimientos' });
+          }}
+          onVerCategorias={verCategorias}
           onVerExcluidos={() => setVista({ nombre: 'excluidos' })}
         />
       )}

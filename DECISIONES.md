@@ -7,6 +7,10 @@ mitad se te fue en Vivienda"*. Es el requisito de los 10 segundos — con 14
 categorías, la renta (58%) queda escondida como una rebanada más si solo
 pongo una gráfica. Debajo, entró y balance; luego el desglose y la lista.
 
+Cada renglón de "En qué se te fue" abre la lista ya filtrada por esa
+categoría: el desglose es una pregunta y la lista es la respuesta. "Otras"
+lleva las diez que colapsa, no una sola.
+
 **Movimientos.** Lista completa del mes agrupada por día, con el total de
 cada día sumando **solo lo que cuenta**. Los excluidos se ven tachados con su
 motivo, no se esconden. Filtros por categoría y cuenta, y búsqueda por

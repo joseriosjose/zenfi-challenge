@@ -99,8 +99,11 @@ export function titularDelMes(resumen: Resumen): string | null {
 export type Otras = {
   centavos: Centavos;
   pct: number;
-  /** Cuantas categorias quedaron colapsadas aqui. */
-  categorias: number;
+  /**
+   * Cuales quedaron colapsadas aqui, no solo cuantas: el renglon lleva a la
+   * lista filtrada por todas ellas, y para eso hay que saber sus nombres.
+   */
+  categorias: Categoria[];
 };
 
 /** Corta el desglose en las `limite` mayores y colapsa el resto en "Otras". */
@@ -117,7 +120,7 @@ export function agruparOtras(
     otras: {
       centavos: resto.reduce((total, c) => total + c.centavos, 0),
       pct: resto.reduce((total, c) => total + c.pct, 0),
-      categorias: resto.length,
+      categorias: resto.map((c) => c.categoria),
     },
   };
 }

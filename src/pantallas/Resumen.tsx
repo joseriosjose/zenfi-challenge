@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import { formatearMXN } from '../dominio/modelo';
+import type { Categoria } from '../dominio/modelo';
 import type { MesDisponible, Movimiento } from '../dominio/derivar';
 import { agruparOtras, masRecientes, titularDelMes } from '../dominio/resumen';
 import type { GastoPorCategoria, Otras, Resumen as ResumenDelMes } from '../dominio/resumen';
@@ -139,10 +140,20 @@ function Encabezado({
 
 /* ------------------------------------------------------------------ */
 
-function FilaCategoria({ gasto }: { gasto: GastoPorCategoria }) {
+function FilaCategoria({
+  gasto,
+  onAbrir,
+}: {
+  gasto: GastoPorCategoria;
+  onAbrir: (categorias: Categoria[]) => void;
+}) {
   const estilo = estiloDe(gasto.categoria);
   return (
-    <div className="flex items-center justify-between gap-3 py-3">
+    <button
+      type="button"
+      onClick={() => onAbrir([gasto.categoria])}
+      className="flex w-full items-center justify-between gap-3 py-3 text-left"
+    >
       <div className="flex min-w-0 items-start gap-3">
         <span
           className={`grid size-10 shrink-0 place-items-center rounded-full ${estilo.fondo} ${estilo.texto}`}
@@ -166,13 +177,23 @@ function FilaCategoria({ gasto }: { gasto: GastoPorCategoria }) {
           {Math.round(gasto.pct)}%
         </span>
       </div>
-    </div>
+    </button>
   );
 }
 
-function FilaOtras({ otras }: { otras: Otras }) {
+function FilaOtras({
+  otras,
+  onAbrir,
+}: {
+  otras: Otras;
+  onAbrir: (categorias: Categoria[]) => void;
+}) {
   return (
-    <div className="flex items-center justify-between gap-3 py-3">
+    <button
+      type="button"
+      onClick={() => onAbrir(otras.categorias)}
+      className="flex w-full items-center justify-between gap-3 py-3 text-left"
+    >
       <div className="flex items-center gap-3">
         <span
           className={`grid size-10 shrink-0 place-items-center rounded-full ${ESTILO_OTRAS.fondo} ${ESTILO_OTRAS.texto}`}
@@ -182,7 +203,7 @@ function FilaOtras({ otras }: { otras: Otras }) {
         <div className="flex flex-col">
           <span className="text-body-lg font-semibold">Otras</span>
           <span className="mt-0.5 text-body-sm text-ink-faint">
-            {otras.categorias} categorías
+            {otras.categorias.length} categorías
           </span>
         </div>
       </div>
@@ -194,11 +215,17 @@ function FilaOtras({ otras }: { otras: Otras }) {
           {Math.round(otras.pct)}%
         </span>
       </div>
-    </div>
+    </button>
   );
 }
 
-function Desglose({ resumen }: { resumen: ResumenDelMes }) {
+function Desglose({
+  resumen,
+  onVerCategorias,
+}: {
+  resumen: ResumenDelMes;
+  onVerCategorias: (categorias: Categoria[]) => void;
+}) {
   const [todas, setTodas] = useState(false);
   // La barra siempre resume en 3 + Otras: con 14 segmentos y separacion no
   // cabria en el ancho, y dejaria de leerse de un vistazo. La lista de abajo
@@ -241,9 +268,9 @@ function Desglose({ resumen }: { resumen: ResumenDelMes }) {
 
       <div className="mt-2 divide-y divide-hairline">
         {principales.map((c) => (
-          <FilaCategoria key={c.categoria} gasto={c} />
+          <FilaCategoria key={c.categoria} gasto={c} onAbrir={onVerCategorias} />
         ))}
-        {otras !== null && <FilaOtras otras={otras} />}
+        {otras !== null && <FilaOtras otras={otras} onAbrir={onVerCategorias} />}
       </div>
 
       {resumen.porCategoria.length > 3 && (
@@ -358,6 +385,7 @@ export function Resumen({
   onElegirMes,
   onAbrirMovimiento,
   onVerTodos,
+  onVerCategorias,
   onVerExcluidos,
 }: {
   resumen: ResumenDelMes;
@@ -366,6 +394,8 @@ export function Resumen({
   onElegirMes: (periodo: string) => void;
   onAbrirMovimiento: (id: string) => void;
   onVerTodos: () => void;
+  /** Abre la lista ya filtrada. Un renglon del desglose es una pregunta. */
+  onVerCategorias: (categorias: Categoria[]) => void;
   onVerExcluidos: () => void;
 }) {
   const visibles = masRecientes(resumen.incluidos, 5);
@@ -377,7 +407,7 @@ export function Resumen({
       </header>
 
       <Encabezado resumen={resumen} periodo={periodo} meses={meses} onElegirMes={onElegirMes} />
-      <Desglose resumen={resumen} />
+      <Desglose resumen={resumen} onVerCategorias={onVerCategorias} />
       <TiraExcluidos excluidos={resumen.excluidos} onAbrir={onVerExcluidos} />
 
       <section className="card mx-4 mt-4">
