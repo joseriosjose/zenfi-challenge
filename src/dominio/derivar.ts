@@ -189,31 +189,85 @@ function marcarDuplicados(movimientos: Movimiento[]): void {
 /* Pipeline                                                           */
 /* ------------------------------------------------------------------ */
 
-/** Primera exclusion que aplique, en el orden del pipeline. */
-function calcularExclusion(m: Movimiento, periodo: string): Exclusion | null {
+/**
+ * R07 — alcance del periodo. Se compara la fecha local del banco, no el Date,
+ * para no cruzar husos horarios.
+ *
+ * No es una exclusion: un cargo de agosto no esta "excluido del calculo de
+ * septiembre", simplemente no es de septiembre. Sale del alcance y se revisa
+ * en su propio mes.
+ */
+function enPeriodo(crudo: MovimientoCrudo, periodo: string): boolean {
+  return crudo.fecha.startsWith(periodo);
+}
+
+/**
+ * Primera exclusion que aplique, en el orden del pipeline. Solo corre sobre
+ * movimientos que ya pertenecen al mes: excluir es "es de este mes pero no
+ * cuenta", no "es de otro mes".
+ */
+function calcularExclusion(m: Movimiento): Exclusion | null {
   if (m.tipo === 'traspaso') return { regla: 'R04a', motivo: 'Traspaso entre tus cuentas' };
-  // Se compara la fecha local del banco, no el Date, para no cruzar husos.
-  if (!m.original.fecha.startsWith(periodo)) return { regla: 'R07', motivo: 'De otro periodo' };
   if (!estaConfirmado(m.estado)) {
-    const motivo = m.estado === 'en_disputa' ? 'En disputa' : 'Pendiente de confirmar';
+    const motivo =
+      m.estado === 'en_disputa'
+        ? 'En disputa'
+        : m.estado === 'programada'
+          ? 'Programado, todavía no se cobra'
+          : 'Pendiente de confirmar';
     return { regla: 'R08', motivo };
   }
   if (m.original.moneda !== MONEDA_BASE) return { regla: 'R09', motivo: 'Falta tipo de cambio' };
   return null;
 }
 
+export type MesDisponible = {
+  /** Formato `YYYY-MM`. */
+  periodo: string;
+  movimientos: number;
+};
+
+export type Calendario = {
+  /** El periodo que declara el emisor del archivo. */
+  declarado: string;
+  /** Solo los meses que la data realmente tiene, del mas reciente al mas viejo. */
+  meses: MesDisponible[];
+};
+
 /**
- * Aplica el pipeline completo. Funcion pura: los ajustes entran como
- * parametro, no como estado interno, asi que el paso 10 es el ultimo map.
+ * Que meses se pueden consultar. No es el rango del periodo declarado: el
+ * archivo trae movimientos de otros meses, y esos tambien se pueden revisar.
  */
-export function derivar(ajustes: AjustesUsuario = AJUSTES_VACIOS): Periodo {
+export function calendario(): Calendario {
+  const extracto = leerExtracto();
+  const conteo = new Map<string, number>();
+  for (const crudo of extracto.movimientos) {
+    const mes = crudo.fecha.slice(0, 7);
+    conteo.set(mes, (conteo.get(mes) ?? 0) + 1);
+  }
+  const meses = [...conteo.entries()]
+    .map(([periodo, movimientos]) => ({ periodo, movimientos }))
+    .sort((a, b) => b.periodo.localeCompare(a.periodo));
+
+  return { declarado: extracto.periodo, meses };
+}
+
+/**
+ * Aplica el pipeline completo. Funcion pura: el periodo y los ajustes entran
+ * como parametros, asi que cambiar de mes recalcula todo sin estado oculto.
+ */
+export function derivar(ajustes: AjustesUsuario, periodoElegido: string): Periodo {
   const extracto = leerExtracto();
   const consenso = construirConsenso(extracto.movimientos);
 
   const movimientos: Movimiento[] = [];
   const descartados: Descarte[] = [...extracto.descartados];
 
+  // El consenso de categoria se construye con TODO el archivo (arriba), pero
+  // el pipeline solo corre sobre los movimientos del mes elegido: mas cargos
+  // del mismo comercio en otros meses siguen siendo evidencia valida.
   extracto.movimientos.forEach((crudo, indice) => {
+    if (!enPeriodo(crudo, periodoElegido)) return; // R07 — alcance
     const centavos = aplicarSigno(crudo); // R01 + R02
     if (centavos === null) {
       descartados.push({ indice, id: crudo.id, motivo: 'monto no parseable' });
@@ -242,7 +296,7 @@ export function derivar(ajustes: AjustesUsuario = AJUSTES_VACIOS): Periodo {
   ligarReembolsos(movimientos); // R05
 
   for (const m of movimientos) {
-    m.exclusion = calcularExclusion(m, extracto.periodo); // R04a, R07, R08, R09
+    m.exclusion = calcularExclusion(m); // R04a, R08, R09
   }
   marcarDuplicados(movimientos); // R06
 
@@ -257,7 +311,7 @@ export function derivar(ajustes: AjustesUsuario = AJUSTES_VACIOS): Periodo {
   }
 
   return {
-    periodo: extracto.periodo,
+    periodo: periodoElegido,
     generadoEn: extracto.generadoEn,
     movimientos,
     descartados,

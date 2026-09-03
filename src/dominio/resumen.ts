@@ -58,6 +58,9 @@ export function resumir(periodo: Periodo): Resumen {
   }
 
   const porCategoria = [...acumulado.entries()]
+    // Una categoria que suma cero no es parte del desglose: no esconde dinero
+    // y solo agrega un renglon de $0.00 (el caso de txn_036).
+    .filter(([, dato]) => dato.centavos !== 0)
     .map(([categoria, dato]) => ({
       categoria,
       centavos: dato.centavos,
@@ -75,4 +78,53 @@ export function resumir(periodo: Periodo): Resumen {
     incluidos,
     excluidos,
   };
+}
+
+/**
+ * La frase que responde "en que se te fue el dinero" sin que el usuario tenga
+ * que leer el desglose. Es criterio de negocio, no de presentacion: decidir
+ * que "mas de la mitad" merece decirse y "3%" no, es una regla.
+ */
+export function titularDelMes(resumen: Resumen): string | null {
+  const mayor = resumen.porCategoria[0];
+  if (mayor === undefined || mayor.centavos <= 0) return null;
+  if (resumen.porCategoria.length === 1) return `Todo tu gasto del mes fue en ${mayor.categoria}`;
+  if (mayor.pct >= 90) return `Casi todo se te fue en ${mayor.categoria}`;
+  if (mayor.pct >= 50) return `Más de la mitad se te fue en ${mayor.categoria}`;
+  if (mayor.pct >= 33) return `Un tercio se te fue en ${mayor.categoria}`;
+  if (mayor.pct >= 20) return `Lo que más pesó fue ${mayor.categoria}`;
+  return 'Tu gasto quedó bastante repartido este mes';
+}
+
+export type Otras = {
+  centavos: Centavos;
+  pct: number;
+  /** Cuantas categorias quedaron colapsadas aqui. */
+  categorias: number;
+};
+
+/** Corta el desglose en las `limite` mayores y colapsa el resto en "Otras". */
+export function agruparOtras(
+  porCategoria: GastoPorCategoria[],
+  limite: number,
+): { principales: GastoPorCategoria[]; otras: Otras | null } {
+  const principales = porCategoria.slice(0, limite);
+  const resto = porCategoria.slice(limite);
+  if (resto.length === 0) return { principales, otras: null };
+
+  return {
+    principales,
+    otras: {
+      centavos: resto.reduce((total, c) => total + c.centavos, 0),
+      pct: resto.reduce((total, c) => total + c.pct, 0),
+      categorias: resto.length,
+    },
+  };
+}
+
+/** Los mas recientes primero. El orden del archivo no es cronologico. */
+export function masRecientes(movimientos: Movimiento[], limite: number): Movimiento[] {
+  return [...movimientos]
+    .sort((a, b) => b.fecha.getTime() - a.fecha.getTime())
+    .slice(0, limite);
 }

@@ -2,12 +2,22 @@
 
 ## Qué muestro y qué dejo fuera
 
-- _(pendiente — se llena al construir la pantalla)_
-- Fuera: input de tipo de cambio, control Cargo/Abono, flujo de confirmar
-  duplicados, preview "tu gasto sube de X a Y". Las reglas que los motivan sí
-  están implementadas; lo que no construí son sus pantallas.
-- Las 9 reglas se divulgan en un solo lugar —"N movimientos fuera del
-  cálculo", con el motivo de cada uno— en vez de seis flujos.
+**Resumen.** Arriba, el gasto del mes y una frase que lo explica: *"Más de la
+mitad se te fue en Vivienda"*. Es el requisito de los 10 segundos — con 14
+categorías, la renta (58%) queda escondida como una rebanada más si solo
+pongo una gráfica. Debajo, entró y balance; luego el desglose y la lista.
+
+**Detalle.** Cambiar categoría, el registro original sin tocar, y —si una
+regla lo excluyó— el motivo con la opción de incluirlo de todos modos.
+
+- Las reglas se divulgan en **un solo lugar**: la tira "N movimientos
+  excluidos del cálculo", con sus motivos. Seis flujos separados no cabían.
+- **Selector de mes** con solo los meses que la data tiene: ago 2026 (59),
+  sep 2026 (1) y nov 2025 (1).
+- **Fuera:** tipo de cambio, control Cargo/Abono, confirmar duplicados,
+  preview "tu gasto sube de X a Y", selector de mes y nav inferior. Las reglas
+  que los motivan sí están implementadas; lo que no construí son sus pantallas.
+- Sin persistencia: las correcciones viven en memoria y se pierden al recargar.
 
 ## Supuestos
 
@@ -35,7 +45,7 @@ interpreta al leer y el registro original queda intacto.
 | Categoría `null` o `""` | `txn_016`, `txn_030`, `txn_049`, `txn_061` | Consenso del comercio o "Sin categoría" |
 | Categoría inconsistente | `txn_005`, `txn_009` | Consenso del comercio |
 | Duplicados | `txn_021/022`, `txn_044/045` | Gana `confirmada` |
-| Fuera de periodo | `txn_059`, `txn_060` | Visibles, fuera de totales |
+| Fuera de periodo | `txn_059`, `txn_060` | Fuera del **alcance** del mes, no excluidos |
 | No confirmados | `txn_053`, `txn_056`, `txn_061` | Visibles, fuera de totales |
 | USD sin tipo de cambio | `txn_032` | Fuera de totales |
 | Traspaso interno | `txn_010` | No es gasto |
@@ -54,6 +64,13 @@ Dos decisiones que quiero explicar:
   una sola vez: ahí la categoría la puse yo. 42 de 49 comercios aparecen una
   vez, así que el consenso no generaliza y la app distingue ambos casos.
 
+**"Fuera de periodo" es alcance, no exclusión.** Al agregar el selector de
+mes, decir que un cargo de agosto está "excluido del cálculo de septiembre"
+deja de tener sentido: no es de septiembre. Ahora cada mes solo revisa sus
+propios movimientos. Agosto pasa de 9 exclusiones a 7 y **los totales no
+cambian** —esos dos nunca sumaron—, y ahora `txn_059` y `txn_060` sí se
+pueden ver, cada uno en su mes.
+
 **Importes en enteros de centavos, no float.** No es teórico: en float el
 balance sale `-62580.149999999994`.
 
@@ -69,6 +86,10 @@ $21,650.00, `Compras` neteada en $5,983.00.
 - Generó el setup (Tailwind + design system) y la capa de dominio.
 - Le corregí el alcance: propuso tests y un script de arquitectura en CI; los
   quité por el time-box.
+- Verificó el diseño de Stitch contra los datos y encontró tres inconsistencias
+  que Stitch inventó: la lista "recientes" venía ordenada por monto, el
+  subtítulo de excluidos decía "retiros" (que sí se incluyen), y la barra
+  segmentada no cuadraba con su propia lista.
 
 ## Qué haría con una semana más
 

@@ -112,5 +112,7 @@ const FORMATO_MXN = new Intl.NumberFormat('es-MX', {
  * `.toFixed(2)` se cuele dentro de un componente.
  */
 export function formatearMXN(centavos: Centavos): string {
-  return FORMATO_MXN.format(centavos / 100);
+  // `-0 === 0` es true, asi que esto normaliza el cero negativo que sale de
+  // negar una suma vacia y que Intl formatea como "-$0.00".
+  return FORMATO_MXN.format(centavos === 0 ? 0 : centavos / 100);
 }
