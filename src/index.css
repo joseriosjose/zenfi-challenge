@@ -1,14 +1,129 @@
-:root {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.5;
-  color-scheme: light dark;
+@import 'tailwindcss';
+
+/* =========================================================================
+   Design system — Zenfi challenge
+   Tokens declarados en @theme: cada uno genera a la vez una utilidad de
+   Tailwind (bg-primary-600) y una CSS variable (var(--color-primary-600))
+   para usarla en SVG de gráficas sin duplicar la paleta.
+   ========================================================================= */
+
+@theme {
+  /* --- Tipografía --------------------------------------------------- */
+  --font-sans: 'Archivo Narrow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Archivo Narrow', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* --- Primary #126B57 ---------------------------------------------- */
+  --color-primary-50: #eaf6f2;
+  --color-primary-100: #cdebe1;
+  --color-primary-200: #9dd7c4;
+  --color-primary-300: #6bc0a5;
+  --color-primary-400: #3fa285;
+  --color-primary-500: #1e8168;
+  --color-primary-600: #126b57;
+  --color-primary-700: #0f5546;
+  --color-primary-800: #0d4238;
+  --color-primary-900: #0b342d;
+  --color-primary-950: #051d18;
+
+  /* --- Secondary #8FE3C4 -------------------------------------------- */
+  --color-secondary-50: #f0fcf7;
+  --color-secondary-100: #daf7eb;
+  --color-secondary-200: #b8efd8;
+  --color-secondary-300: #8fe3c4;
+  --color-secondary-400: #5fd0a6;
+  --color-secondary-500: #38b688;
+  --color-secondary-600: #24956d;
+  --color-secondary-700: #1d7758;
+  --color-secondary-800: #1a5e47;
+  --color-secondary-900: #174d3c;
+  --color-secondary-950: #072b21;
+
+  /* --- Tertiary #0E2A24 --------------------------------------------- */
+  --color-tertiary-50: #edf2f0;
+  --color-tertiary-100: #d6e1dd;
+  --color-tertiary-200: #aec4bd;
+  --color-tertiary-300: #85a69c;
+  --color-tertiary-400: #5e877c;
+  --color-tertiary-500: #416a60;
+  --color-tertiary-600: #2f5049;
+  --color-tertiary-700: #223c36;
+  --color-tertiary-800: #163029;
+  --color-tertiary-900: #0e2a24;
+  --color-tertiary-950: #071815;
+
+  /* --- Neutral #F3F4EF ---------------------------------------------- */
+  --color-neutral-50: #fafbf8;
+  --color-neutral-100: #f3f4ef;
+  --color-neutral-200: #e6e8e0;
+  --color-neutral-300: #d2d5ca;
+  --color-neutral-400: #b0b5a8;
+  --color-neutral-500: #8b9083;
+  --color-neutral-600: #6c7166;
+  --color-neutral-700: #545850;
+  --color-neutral-800: #3d403a;
+  --color-neutral-900: #2a2c28;
+  --color-neutral-950: #191a18;
+
+  /* --- Semánticos de dominio ---------------------------------------- */
+  --color-danger: #c4392e;
+  --color-danger-hover: #a52f26;
+
+  /* --- Radios ------------------------------------------------------- */
+  --radius-card: 1.5rem;
+  --radius-control: 0.75rem;
 }
 
-* {
-  box-sizing: border-box;
+/* =========================================================================
+   Alias semánticos. Son CSS variables normales: redefinirlas bajo
+   [data-theme='dark'] cambia todo el tema sin tocar un solo componente.
+   ========================================================================= */
+
+@theme {
+  --color-canvas: var(--color-neutral-200);
+  --color-surface: var(--color-neutral-100);
+  --color-surface-raised: var(--color-neutral-50);
+  --color-ink: var(--color-tertiary-900);
+  --color-ink-muted: var(--color-neutral-600);
+  --color-border: var(--color-neutral-300);
+  --color-ingreso: var(--color-primary-600);
+  --color-gasto: var(--color-tertiary-700);
 }
 
-body {
-  margin: 0;
-  min-height: 100dvh;
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* =========================================================================
+   Componentes recurrentes. @utility los hace utilidades de primera clase
+   (se pueden sobreescribir con clases de Tailwind en el sitio de uso).
+   ========================================================================= */
+
+@utility card {
+  border-radius: var(--radius-card);
+  background-color: var(--color-surface);
+  padding: --spacing(6);
+}
+
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-muted);
 }
