@@ -10,19 +10,36 @@ import {
   agruparPorDia,
   filtrar,
   filtrosActivos,
-  horaDe,
   opcionesDeFiltro,
   totalizar,
 } from '../dominio/lista';
 import type { Filtros } from '../dominio/lista';
 import { SIN_FILTROS } from '../dominio/lista';
 import { estiloDe } from '../ui/categorias';
-import { etiquetaDeDia, etiquetaDeMes } from '../ui/fechas';
+import { etiquetaDeDia, etiquetaDeMes, horaDe } from '../ui/fechas';
 import { Hoja } from '../ui/Hoja';
 
 function nombreDeCuenta(cuenta: string | null): string {
   return cuenta ?? 'Sin cuenta';
 }
+
+/* ------------------------------------------------------------------ */
+
+/* Glifo no: `⌕` se renderiza a un tamaño distinto en cada fuente y quedaba
+   mucho mas chico que el resto. Mismo trazo que los iconos de categoria. */
+const lupa = (
+  <svg
+    viewBox="0 0 24 24"
+    className="size-5"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.75}
+    strokeLinecap="round"
+  >
+    <circle cx="10.5" cy="10.5" r="6.5" />
+    <path d="m15.4 15.4 4.1 4.1" />
+  </svg>
+);
 
 /* ------------------------------------------------------------------ */
 
@@ -33,7 +50,6 @@ function Fila({
   movimiento: Movimiento;
   onAbrir: (id: string) => void;
 }) {
-  const estilo = estiloDe(movimiento.categoria);
   const excluido = movimiento.exclusion !== null;
   const esAbono = movimiento.centavos > 0;
 
@@ -41,39 +57,45 @@ function Fila({
     <button
       type="button"
       onClick={() => onAbrir(movimiento.id)}
-      className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left ${
-        excluido ? 'opacity-50' : ''
-      }`}
+      /* Tachar significa "borrado", y estos movimientos existen: pasaron y se
+         pueden abrir. Lo que no cuenta es su importe, asi que la senal va en
+         el importe y en una marca al margen — no encima del nombre.
+         La marca va absoluta y no como borde para no quitarle ancho al
+         renglon: 3px menos alcanzaban a encimar el monto con la insignia. */
+      className="relative flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
     >
-      <span className="flex min-w-0 items-center gap-3">
+      {excluido && (
         <span
-          className={`grid size-10 shrink-0 place-items-center rounded-full text-headline-sm ${estilo.fondo} ${estilo.texto}`}
-        >
-          {movimiento.descripcion.charAt(0)}
-        </span>
+          aria-hidden
+          className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-revisar/45"
+        />
+      )}
+      <span className="flex min-w-0 items-center gap-3">
         <span className="flex min-w-0 flex-col">
           <span
             className={`truncate text-body-md font-semibold uppercase ${
-              excluido ? 'line-through decoration-1' : ''
+              excluido ? 'text-ink-muted' : ''
             }`}
           >
             {movimiento.descripcion}
           </span>
           <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-body-sm text-ink-faint">
             {excluido ? (
-              <span className="shrink-0 rounded-[4px] bg-revisar/12 px-1.5 py-0.5 text-label-caps text-revisar uppercase">
+              // Truncable: "Programado, todavia no se cobra" no cabe y, con
+              // `shrink-0`, desbordaba el renglon y se encimaba con el monto.
+              <span className="truncate rounded-[4px] bg-revisar/12 px-1.5 py-0.5 text-label-caps text-revisar uppercase">
                 {movimiento.exclusion?.motivo}
               </span>
             ) : (
               <span className="truncate">{movimiento.categoria}</span>
             )}
-            <span className="shrink-0">· {horaDe(movimiento)}</span>
+            <span className="shrink-0">· {horaDe(movimiento.original.fecha)}</span>
           </span>
         </span>
       </span>
       <span
-        className={`shrink-0 font-mono text-amount-sm font-semibold ${
-          excluido ? 'line-through decoration-1' : esAbono ? 'text-jade' : ''
+        className={`shrink-0 font-mono text-amount-sm ${
+          excluido ? 'font-normal text-ink-faint' : `font-semibold ${esAbono ? 'text-jade' : ''}`
         }`}
       >
         {esAbono ? '+' : ''}
@@ -278,9 +300,9 @@ export function Movimientos({
           onClick={() => setBuscando((v) => !v)}
           aria-label="Buscar por concepto"
           aria-expanded={buscando}
-          className="grid size-9 place-items-center rounded-full text-headline-md"
+          className="grid size-9 place-items-center rounded-full"
         >
-          ⌕
+          {lupa}
         </button>
       </header>
 
@@ -358,7 +380,7 @@ export function Movimientos({
             <div className="flex min-w-0 flex-col">
               <span className="text-headline-md">{unicaCategoria}</span>
               <span className="text-body-sm text-ink-faint">
-                {totales.cuentan} de {totales.movimientos} movimientos cuentan
+                {totales.movimientos} {totales.movimientos === 1 ? 'movimiento' : 'movimientos'}
               </span>
             </div>
           </div>
@@ -377,8 +399,8 @@ export function Movimientos({
 
       {/* Línea de resultados */}
       <p className="px-4 pb-3 text-body-md text-ink-faint">
-        <span className="font-mono font-bold text-ink">{totales.movimientos}</span> movimientos ·{' '}
-        <span className="font-mono font-bold text-jade">{totales.cuentan}</span> cuentan ·{' '}
+        <span className="font-mono font-bold text-ink">{totales.movimientos}</span>{' '}
+        {totales.movimientos === 1 ? 'movimiento' : 'movimientos'} ·{' '}
         <span className="font-mono font-bold text-ink">{formatearMXN(totales.gastoCentavos)}</span>
       </p>
 

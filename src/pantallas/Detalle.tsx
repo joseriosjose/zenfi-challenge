@@ -18,6 +18,7 @@ import type { AjusteMovimiento, Movimiento } from '../dominio/derivar';
 import type { TipoMovimiento } from '../dominio/reglas';
 import { estiloDe } from '../ui/categorias';
 import { Hoja } from '../ui/Hoja';
+import { fechaLarga } from '../ui/fechas';
 
 /**
  * Un mapa por enum. Cada origen se explica una sola vez y con su evidencia:
@@ -70,16 +71,6 @@ const TIPOS = [
   { valor: 'traspaso', etiqueta: 'Traspaso' },
   { valor: 'reembolso', etiqueta: 'Reembolso' },
 ] as const satisfies readonly { valor: TipoMovimiento; etiqueta: string }[];
-
-function fechaLarga(fecha: Date): string {
-  return fecha.toLocaleString('es-MX', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
 
 /* ------------------------------------------------------------------ */
 
@@ -299,7 +290,7 @@ export function Detalle({ movimiento, ajuste, onVolver, onAjustar, onRestaurar }
         <div className="min-w-0 flex-1">
           <p className="truncate text-body-lg font-semibold uppercase">{movimiento.descripcion}</p>
           <p className="mt-0.5 text-body-sm text-ink-faint">
-            {fechaLarga(movimiento.fecha)}
+            {fechaLarga(movimiento.original.fecha)}
             {movimiento.cuenta !== null ? ` · ${movimiento.cuenta}` : ' · Sin cuenta'}
           </p>
         </div>
@@ -312,8 +303,7 @@ export function Detalle({ movimiento, ajuste, onVolver, onAjustar, onRestaurar }
       {/* Por que no cuenta */}
       {movimiento.exclusion !== null && (
         <section className="mx-4 mt-3 rounded-card border-l-4 border-revisar bg-revisar/8 p-4">
-          <p className="text-label-caps text-revisar uppercase">Por qué no cuenta</p>
-          <p className="mt-1 text-headline-sm">{movimiento.exclusion.motivo}</p>
+          <p className="text-headline-sm">{movimiento.exclusion.motivo}</p>
           <p className="mt-1 text-body-sm text-ink-muted">{movimiento.exclusion.detalle}</p>
           <button
             type="button"
@@ -322,9 +312,6 @@ export function Detalle({ movimiento, ajuste, onVolver, onAjustar, onRestaurar }
           >
             Contarlo de todos modos
           </button>
-          <p className="mt-2 text-body-sm text-ink-faint">
-            Lo decidió la regla {movimiento.exclusion.regla}.
-          </p>
         </section>
       )}
 
@@ -347,7 +334,7 @@ export function Detalle({ movimiento, ajuste, onVolver, onAjustar, onRestaurar }
       )}
 
       <section className="mx-4">
-        <Etiqueta texto="Cómo se ve" />
+        <Etiqueta texto="Qué fue" />
         <div className="divide-y divide-hairline rounded-card bg-card shadow-card">
           <Renglon titulo="Nombre" ayuda="Ponle el nombre con el que tú lo reconoces">
             <input
@@ -392,7 +379,7 @@ export function Detalle({ movimiento, ajuste, onVolver, onAjustar, onRestaurar }
       </section>
 
       <section className="mx-4">
-        <Etiqueta texto="Cuánto" />
+        <Etiqueta texto="Cuánto fue" />
         <div className="rounded-card bg-card p-4 shadow-card">
           <div className="flex items-center justify-between gap-3">
             <span className="text-body-md font-semibold">Importe</span>
@@ -449,7 +436,7 @@ export function Detalle({ movimiento, ajuste, onVolver, onAjustar, onRestaurar }
       </section>
 
       <section className="mx-4">
-        <Etiqueta texto="Cómo cuenta" />
+        <Etiqueta texto="Cómo cuenta en tu mes" />
         <div className="rounded-card bg-card p-4 shadow-card">
           <p className="pb-3 text-body-md font-semibold">Tipo de movimiento</p>
           <Segmentado opciones={TIPOS} valor={tipo} onElegir={setTipo} />

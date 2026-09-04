@@ -75,8 +75,7 @@ export function opcionesDeFiltro(movimientos: Movimiento[]): {
 
 export type TotalesDeLista = {
   movimientos: number;
-  /** Cuantos de esos entran en el calculo. */
-  cuentan: number;
+  /** Solo suma lo que cuenta: los excluidos se ven, pero no mueven el total. */
   gastoCentavos: Centavos;
 };
 
@@ -87,7 +86,6 @@ function esGasto(m: Movimiento): boolean {
 export function totalizar(movimientos: Movimiento[]): TotalesDeLista {
   return {
     movimientos: movimientos.length,
-    cuentan: movimientos.filter((m) => m.exclusion === null).length,
     gastoCentavos: -movimientos.filter(esGasto).reduce((total, m) => total + m.centavos, 0),
   };
 }
@@ -106,11 +104,6 @@ export type GrupoDelDia = {
  */
 function diaDe(m: Movimiento): string {
   return m.original.fecha.slice(0, 10);
-}
-
-/** `HH:MM` local del banco. */
-export function horaDe(m: Movimiento): string {
-  return m.original.fecha.slice(11, 16);
 }
 
 export function agruparPorDia(movimientos: Movimiento[]): GrupoDelDia[] {

@@ -62,6 +62,8 @@ export type Movimiento = {
   nota: string | null;
   /** `true` si el importe ya esta en moneda base gracias a un TC del usuario. */
   convertido: boolean;
+  /** El usuario ya reviso su exclusion y la dio por buena. */
+  exclusionConfirmada: boolean;
   centavos: Centavos;
   categoria: Categoria;
   origenCategoria: OrigenCategoria;
@@ -111,6 +113,13 @@ export type AjusteMovimiento = {
   tipoCambio: number | null;
   /** Fuerza la inclusion de algo que una regla dejo fuera. */
   incluir: boolean;
+  /**
+   * El usuario reviso la exclusion y esta de acuerdo. No mueve ningun total
+   * —el movimiento ya estaba fuera—, pero deja de pedirle una decision. Un
+   * grupo que se llama "necesitan tu decision" y solo acepta una de las dos
+   * respuestas sigue preguntando para siempre.
+   */
+  confirmado: boolean;
 };
 
 export const AJUSTE_VACIO: AjusteMovimiento = {
@@ -121,6 +130,7 @@ export const AJUSTE_VACIO: AjusteMovimiento = {
   tipo: null,
   tipoCambio: null,
   incluir: false,
+  confirmado: false,
 };
 
 /** id del movimiento -> lo que el usuario le corrigio. */
@@ -137,7 +147,8 @@ export function ajusteVacio(ajuste: AjusteMovimiento): boolean {
     ajuste.centavos === null &&
     ajuste.tipo === null &&
     ajuste.tipoCambio === null &&
-    !ajuste.incluir
+    !ajuste.incluir &&
+    !ajuste.confirmado
   );
 }
 
@@ -314,7 +325,7 @@ function calcularExclusion(m: Movimiento): Exclusion | null {
       return {
         regla: 'R08',
         motivo: 'En disputa',
-        detalle: 'Está en disputa con tu banco. No cuenta hasta que se resuelva.',
+        detalle: 'Está en disputa con tu banco.',
       };
     }
     if (m.estado === 'programada') {
@@ -327,7 +338,7 @@ function calcularExclusion(m: Movimiento): Exclusion | null {
     return {
       regla: 'R08',
       motivo: 'Pendiente de confirmar',
-      detalle: 'Tu banco todavía no confirma este cargo. Puede cambiar de monto o no cobrarse.',
+      detalle: 'Tu banco todavía no confirma este cargo.',
     };
   }
   if (m.original.moneda !== MONEDA_BASE && !m.convertido) {
@@ -425,6 +436,7 @@ export function derivar(ajustes: AjustesUsuario, periodoElegido: string): Period
       comercio,
       nota: ajuste.nota,
       convertido: crudo.moneda !== MONEDA_BASE && ajuste.tipoCambio !== null,
+      exclusionConfirmada: ajuste.confirmado,
       centavos,
       categoria,
       origenCategoria: ajuste.categoria === null ? regla.origen : 'usuario',

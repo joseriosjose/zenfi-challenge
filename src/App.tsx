@@ -85,6 +85,7 @@ const App = () => {
       {vista.nombre === 'resumen' && (
         <Resumen
           resumen={resumen}
+          conciliacion={conciliacion}
           periodo={periodo.periodo}
           meses={meses.meses}
           onElegirMes={elegirMes}
@@ -105,6 +106,7 @@ const App = () => {
           onVolver={() => setVista({ nombre: 'resumen' })}
           onAbrirMovimiento={(id) => setVista({ nombre: 'detalle', id, origen: 'excluidos' })}
           onIncluir={(id) => ajustar(id, { incluir: true })}
+          onConfirmar={(id) => ajustar(id, { confirmado: true })}
         />
       )}
 

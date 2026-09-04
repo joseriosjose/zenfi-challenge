@@ -12,8 +12,8 @@ import type { Centavos } from './modelo';
 import type { Exclusion, Movimiento, Periodo, ReglaExclusion } from './derivar';
 
 export type FamiliaId =
-  /** Correcto: nunca fue un gasto. No hay nada que decidir. */
-  | 'no-es-gasto'
+  /** Nada que decidir: o nunca fue un gasto, o el usuario ya lo confirmo. */
+  | 'resuelto'
   /** El sistema no tiene la informacion; el usuario si. */
   | 'decision'
   /** Falta que el banco lo resuelva. El tiempo lo mueve, no el usuario. */
@@ -21,14 +21,22 @@ export type FamiliaId =
 
 /** Un mapa, en un archivo. Total por construccion: `ReglaExclusion` es cerrado. */
 const FAMILIA_POR_REGLA: Record<ReglaExclusion, FamiliaId> = {
-  R04a: 'no-es-gasto',
+  R04a: 'resuelto',
   R06: 'decision',
   R09: 'decision',
   R08: 'todavia-no',
 };
 
+/**
+ * La familia no sale solo de la regla: una duda que el usuario ya resolvio
+ * deja de ser una duda, aunque el importe siga fuera del total.
+ */
+function familiaDe(movimiento: Movimiento, regla: ReglaExclusion): FamiliaId {
+  return movimiento.exclusionConfirmada ? 'resuelto' : FAMILIA_POR_REGLA[regla];
+}
+
 /** El orden en que se presentan: de lo resuelto a lo que espera. */
-const ORDEN: readonly FamiliaId[] = ['no-es-gasto', 'decision', 'todavia-no'] as const;
+const ORDEN: readonly FamiliaId[] = ['resuelto', 'decision', 'todavia-no'] as const;
 
 /** Un total por moneda. Sin tipo de cambio no se suman entre si (R09). */
 export type Suma = { moneda: string; centavos: Centavos };
@@ -78,7 +86,7 @@ export function conciliar(periodo: Periodo): Conciliacion {
   );
 
   const grupos = ORDEN.map((id) => {
-    const miembros = renglones.filter((r) => FAMILIA_POR_REGLA[r.exclusion.regla] === id);
+    const miembros = renglones.filter((r) => familiaDe(r.movimiento, r.exclusion.regla) === id);
     return { id, renglones: miembros, sumas: sumar(miembros) };
   }).filter((grupo) => grupo.renglones.length > 0);
 

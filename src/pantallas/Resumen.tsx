@@ -8,6 +8,7 @@ import type { Categoria } from '../dominio/modelo';
 import type { MesDisponible, Movimiento } from '../dominio/derivar';
 import { agruparOtras, masRecientes, titularDelMes } from '../dominio/resumen';
 import type { GastoPorCategoria, Otras, Resumen as ResumenDelMes } from '../dominio/resumen';
+import type { Conciliacion } from '../dominio/conciliacion';
 import { ESTILO_OTRAS, estiloDe } from '../ui/categorias';
 import { diaCorto, etiquetaDeMes, nombreDelMes } from '../ui/fechas';
 
@@ -106,7 +107,7 @@ function Encabezado({
   const titular = titularDelMes(resumen);
 
   return (
-    <section className="bg-linear-to-b from-canopy-from to-canopy-to px-4 pt-4 pb-9 text-white">
+    <section className="bg-linear-to-b from-canopy-from to-canopy-to px-4 pt-5 pb-9 text-white">
       <SelectorMes periodo={periodo} meses={meses} onElegir={onElegirMes} />
 
       <div className="mt-4 mb-5 flex flex-col items-center text-center">
@@ -291,16 +292,21 @@ function Desglose({
 /* ------------------------------------------------------------------ */
 
 function TiraExcluidos({
-  excluidos,
+  conciliacion,
   onAbrir,
 }: {
-  excluidos: Movimiento[];
+  conciliacion: Conciliacion;
   onAbrir: () => void;
 }) {
-  if (excluidos.length === 0) return null;
+  const total = conciliacion.movimientos;
+  if (total === 0) return null;
 
-  // Los motivos distintos, no los siete renglones: el detalle es de su vista.
-  const motivos = [...new Set(excluidos.map((m) => m.exclusion?.motivo ?? ''))];
+  // El total, no solo lo accionable: la tira avisa que hay siete movimientos
+  // que no entraron al gasto, y el usuario decide cuales merecen algo. Los
+  // motivos distintos dan la textura sin repetir los siete renglones.
+  const motivos = [
+    ...new Set(conciliacion.grupos.flatMap((g) => g.renglones.map((r) => r.exclusion.motivo))),
+  ];
 
   return (
     <section className="mx-4 mt-4">
@@ -314,9 +320,7 @@ function TiraExcluidos({
         </span>
         <span className="flex min-w-0 flex-col">
           <span className="text-body-md font-semibold">
-            {excluidos.length === 1
-              ? '1 movimiento excluido del cálculo'
-              : `${excluidos.length} movimientos excluidos del cálculo`}
+            {total} {total === 1 ? 'movimiento necesita' : 'movimientos necesitan'} tu atención
           </span>
           <span className="mt-0.5 text-body-sm text-ink-faint">
             {motivos.slice(0, 3).join(' · ')}
@@ -337,7 +341,6 @@ function FilaMovimiento({
   movimiento: Movimiento;
   onAbrir: (id: string) => void;
 }) {
-  const estilo = estiloDe(movimiento.categoria);
   const esAbono = movimiento.centavos > 0;
   const ajustado =
     movimiento.origenCategoria === 'consenso' ||
@@ -351,18 +354,13 @@ function FilaMovimiento({
       className="flex w-full items-center justify-between gap-3 py-3 text-left"
     >
       <span className="flex min-w-0 items-center gap-3">
-        <span
-          className={`grid size-10 shrink-0 place-items-center rounded-full text-headline-sm ${estilo.fondo} ${estilo.texto}`}
-        >
-          {movimiento.descripcion.charAt(0)}
-        </span>
         <span className="flex min-w-0 flex-col">
           <span className="truncate text-body-md font-semibold uppercase">
             {movimiento.descripcion}
           </span>
           <span className="mt-0.5 flex items-center gap-1.5 text-body-sm text-ink-faint">
             {ajustado && <span className="size-1.5 shrink-0 rounded-full bg-revisar" />}
-            {movimiento.categoria} · {diaCorto(movimiento.fecha)}
+            {movimiento.categoria} · {diaCorto(movimiento.original.fecha)}
           </span>
         </span>
       </span>
@@ -385,10 +383,12 @@ export function Resumen({
   onElegirMes,
   onAbrirMovimiento,
   onVerTodos,
+  conciliacion,
   onVerCategorias,
   onVerExcluidos,
 }: {
   resumen: ResumenDelMes;
+  conciliacion: Conciliacion;
   periodo: string;
   meses: MesDisponible[];
   onElegirMes: (periodo: string) => void;
@@ -402,13 +402,9 @@ export function Resumen({
 
   return (
     <div className="pb-8">
-      <header className="flex h-14 items-center gap-2 bg-ground px-4">
-        <h1 className="text-headline-sm text-jade uppercase">Resumen</h1>
-      </header>
-
       <Encabezado resumen={resumen} periodo={periodo} meses={meses} onElegirMes={onElegirMes} />
       <Desglose resumen={resumen} onVerCategorias={onVerCategorias} />
-      <TiraExcluidos excluidos={resumen.excluidos} onAbrir={onVerExcluidos} />
+      <TiraExcluidos conciliacion={conciliacion} onAbrir={onVerExcluidos} />
 
       <section className="card mx-4 mt-4">
         <div className="flex items-center justify-between pb-3">
