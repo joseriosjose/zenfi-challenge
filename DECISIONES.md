@@ -2,71 +2,24 @@
 
 ## Qué muestro y qué dejo fuera
 
-**Resumen.** Arriba, el gasto del mes y una frase que lo explica: *"Más de la
-mitad se te fue en Vivienda"*. Es el requisito de los 10 segundos — con 14
-categorías, la renta (58%) queda escondida como una rebanada más si solo
-pongo una gráfica. Debajo, entró y balance; luego el desglose y la lista.
-
-Cada renglón de "En qué se te fue" abre la lista ya filtrada por esa
-categoría: el desglose es una pregunta y la lista es la respuesta. "Otras"
-lleva las diez que colapsa, no una sola.
-
-**Movimientos.** Lista completa del mes agrupada por día, con el total de
-cada día sumando **solo lo que cuenta**. Los excluidos se ven tachados con su
-motivo, no se esconden. Filtros por categoría y cuenta, y búsqueda por
-concepto. Las opciones del panel salen de los datos en alcance, no de una
-lista fija: así ninguna categoría se pierde y los conteos nunca mienten.
-
-**Fuera del cálculo.** Los 7 excluidos de agosto, agrupados por *qué puede
-hacer el usuario*, no por regla: lo que nunca fue gasto, lo que necesita su
-decisión y lo que espera al banco. El botón para incluirlo aparece solo en el
-grupo de en medio — ofrecerlo cuatro veces bajo "entran solos cuando se
-resuelvan" se contradice con su propio grupo.
-
-**Movimiento.** El editor. Nombre, categoría, nota, importe, cargo/abono,
-tipo de cambio y tipo de movimiento. Si una regla tocó el movimiento, dice
-cuál y con qué evidencia —*"tus otros 2 cargos de DIDI MOBILITY están en
-Transporte"*— y ofrece deshacerla. Es un borrador: se guarda de una vez, y
-cada campo solo se guarda si difiere de lo que dijeron las reglas, así
-guardar sin cambiar nada no marca el movimiento como corregido.
-
-- Las reglas se divulgan en **un solo lugar**: la tira "N movimientos
-  excluidos del cálculo" y la pantalla que abre. Seis flujos separados no
-  cabían.
-- **Selector de mes** con solo los meses que la data tiene: ago 2026 (59),
-  sep 2026 (1) y nov 2025 (1).
-- **El tipo de cambio cierra R09.** Es el único caso donde el usuario tiene un
-  dato que al banco le faltó: lo escribe y el cargo en USD entra al mes
-  convertido. $12.00 × 18.90 = $226.80.
-- **Fuera:** confirmar duplicados ("sí, es repetido" no movería ningún
-  número), crear categorías, la regla "aplicar a los próximos cargos de este
-  comercio", el toggle "Por categoría" y la nav inferior con Metas/Perfil.
-- Sin persistencia: las correcciones viven en memoria y se pierden al recargar.
+- **Resumen.** El gasto del mes y una frase que nombra dónde se te fue más: *"Más de la mitad se te fue en Vivienda"*.
+- **Las categorías principales abren la lista ya filtrada.** La categoría es la pregunta; la lista, la respuesta.
+- **Movimientos.** El mes agrupado por día, con el total del día sumando solo lo que cuenta. Filtros por categoría y cuenta, y búsqueda por concepto.
+- **Conciliación mensual.** Lo que quedó fuera del resumen, agrupado por quién tiene que actuar: nadie, tú o el banco. Las reglas se divulgan ahí, en un solo lugar, no repartidas en seis flujos.
+- **Movimiento.** El editor: nombre, categoría, nota, importe, cargo/abono, tipo de cambio y tipo.
+- **Fuera:** crear categorías, aprendizaje de movimientos, borrar movimientos
 
 ## Supuestos
 
-- **Periodo inicial = `2026-08`**, el que declara el archivo. El selector solo
-  ofrece meses que existen en la data.
-- **Lo no confirmado no suma** (`pendiente`, `en_disputa`, `programada`) pero
-  sí se ve. Un balance no debe moverse por dinero que aún no salió.
-- **Un retiro de cajero es gasto.** Traslada dinero, no lo consume, pero el
-  usuario perdió visibilidad de él. `Efectivo` queda como categoría ciega.
-- **Renombrar no reagrupa.** El alias es para que el usuario lo reconozca; el
-  consenso por comercio sigue leyendo la descripción del banco. Si no, un
-  renombre movería sin querer la categoría de otros cargos.
-- **Un pago de tarjeta propia no es gasto**: sus consumos ya están uno por uno
-  en el mismo archivo. Contarlo cobraría dos veces. Si el usuario lo incluye a
-  mano deja de ser traspaso: si no, la exclusión desaparece de la lista y el
-  total no se mueve.
-- **Sin tipo de cambio no se convierte.** El único movimiento en USD queda
-  fuera de totales en vez de inventarle un TC.
-- Un `estado` o `moneda` desconocido no descarta el movimiento: se trata como
-  no confirmado y sigue visible.
+- **Periodo inicial = `2026-08`**, el que declara el archivo. El selector solo ofrece meses que existen en la data.
+- **Lo no confirmado no suma** (`pendiente`, `en_disputa`, `programada`) pero sí se muestra. Un balance no debe moverse por dinero que aún no salió.
+- **Renombrar no reagrupa.** El consenso por comercio sigue leyendo la descripción del banco; si no, un alias movería sin querer la categoría de otros cargos.
+- **Un pago de tarjeta propia no es gasto**: sus consumos ya están uno por uno en el mismo archivo. Contarlo cobraría dos veces.
+- **Sin tipo de cambio no se convierte.** El único movimiento en USD queda fuera de totales.
 
 ## Qué encontré en los datos y cómo lo manejé
 
-61 movimientos, 9 problemas reales. Nada se corrige en el archivo: se
-interpreta al leer y el registro original queda intacto.
+Nada se corrige en el archivo: se interpreta al leer y el registro original queda intacto.
 
 | Hallazgo | Casos | Trato |
 |---|---|---|
@@ -80,60 +33,28 @@ interpreta al leer y el registro original queda intacto.
 | USD sin tipo de cambio | `txn_032` | Fuera de totales |
 | Traspaso interno | `txn_010` | No es gasto |
 | Reembolso | `txn_028` ↔ `txn_007` | Neteado dentro de `Compras` |
-| Monto en cero | `txn_036` | Se deja; no sé si es comisión exonerada o dato perdido |
+| Monto en cero | `txn_036` | Se deja; no sé si es comisión o dato perdido |
 
-Leer el archivo tal cual da **−$73,993.75**; con reglas da **−$62,580.15**.
-Una diferencia de **$11,413.60, el 15%**.
 
-Dos decisiones que quiero explicar:
+- **No adivino sin evidencia.** `txn_049` ("TIENDA DE CONVENIENCIA") no identifica un comercio real, así que queda en "Sin categoría".
+- **Consenso ≠ catálogo.** DIDI y OXXO se resuelven con los otros cargos del mismo comercio, que es evidencia del archivo. Los comercios que aparecen una sola vez no se pueden deducir: ahí la categoría la puse yo, y la app distingue los dos casos.
 
-- **No adivino cuando no hay evidencia.** `txn_049` ("TIENDA DE CONVENIENCIA")
-  no identifica un comercio real, así que queda en "Sin categoría".
-- **Consenso ≠ catálogo.** DIDI y OXXO se resuelven con los otros cargos del
-  mismo comercio, que es evidencia del archivo. Spotify y Farmacias aparecen
-  una sola vez: ahí la categoría la puse yo. 42 de 49 comercios aparecen una
-  vez, así que el consenso no generaliza y la app distingue ambos casos.
-
-**"Fuera de periodo" es alcance, no exclusión.** Al agregar el selector de
-mes, decir que un cargo de agosto está "excluido del cálculo de septiembre"
-deja de tener sentido: no es de septiembre. Ahora cada mes solo revisa sus
-propios movimientos. Agosto pasa de 9 exclusiones a 7 y **los totales no
-cambian** —esos dos nunca sumaron—, y ahora `txn_059` y `txn_060` sí se
-pueden ver, cada uno en su mes.
-
-**Importes en enteros de centavos, no float.** No es teórico: en float el
-balance sale `-62580.149999999994`.
-
-El pipeline corre y da 59 en alcance, 52 incluidos, 7 excluidos que suman
-$8,758.00 + USD 12.00, gasto $84,230.15, ingreso $21,650.00, `Compras` neteada
-en $5,983.00.
+**Importes en enteros de centavos, no float.** No es teórico: en float el balance sale `-62580.149999999994`.
 
 ## Cómo usé IA
 
-- Claude Code para todo el proyecto, en sesión continua.
-- Análisis del dataset: yo hice el pase inicial; Claude lo verificó contra el
-  JSON fila por fila y encontró que mi ejemplo de error de punto flotante
-  estaba mal, y que R03 mezclaba dos niveles de evidencia distintos.
-- Generó el setup (Tailwind + design system) y la capa de dominio.
-- Le corregí el alcance: propuso tests y un script de arquitectura en CI; los
-  quité por el time-box.
-- Verificó el diseño de Stitch contra los datos y encontró tres inconsistencias
-  que Stitch inventó: la lista "recientes" venía ordenada por monto, el
-  subtítulo de excluidos decía "retiros" (que sí se incluyen), y la barra
-  segmentada no cuadraba con su propia lista.
-- En la pantalla de exclusiones detectó que el mock decía 9 movimientos y
-  $15,428.00 porque venía del modelo anterior a mover R07 a alcance, y que el
-  botón "sí es un gasto" del traspaso vaciaba el grupo sin mover el total.
-- El mock del detalle de DIDI mezclaba tres registros: encabezado de `txn_027`,
-  la historia de "ajustado por regla" de `txn_005` y el id de `txn_023`. La
-  evidencia del mock —"tus otros 2 cargos"— era correcta, pero de otro
-  movimiento.
+- **Claude Code** en sesión continua; **Stitch** para las pantallas.
+- **Declaré las reglas antes que el código.** La mitad mecánica vive en `eslint.config.js` y falla el build: `any`, `as X`, `!` y `@ts-expect-error` sin descripción son error. La de criterio, en `CLAUDE.md`.
+- **Mantuve el contexto limpio con `/compact`.** Una sesión larga arrastra decisiones ya revertidas y el modelo las revive.
+- **Me generó** el setup (Tailwind + design system), la capa de dominio y las pantallas a partir de los mocks.
+- **Tiré los datos de los mocks**, porque Stitch inventa cifras: una lista "recientes" ordenada por monto, un detalle que mezclaba tres registros (`txn_027`, `txn_005`, `txn_023`). Verifiqué cada una contra el JSON antes de construir.
+- **Lo corregí donde se equivocó de criterio.** Quitó el botón "sí, es repetido" porque no movía ningún número: cierto, pero sí movía el estado, y sin él "necesitan tu decisión" solo aceptaba una de las dos respuestas.
+- **Y me encontró cosas que yo no vi:** el detalle mostraba la hora en el huso del navegador y no en el del banco.
 
 ## Qué haría con una semana más
 
-- "Aplicar a los próximos cargos de este comercio": convertir una corrección
-  en regla es lo que haría que la app dejara de equivocarse dos veces igual.
-- Persistir las correcciones y aprender de ellas: hoy viven en memoria.
+- "Aplicar a los próximos cargos de este comercio": convertir una corrección en regla, para dejar de equivocarse dos veces igual.
+- Persistir las correcciones y aprender de ellas.
 - Tipo de cambio automático por fecha, en vez de pedírselo al usuario.
 - Reembolsos parciales: hoy solo ligo montos idénticos.
 
