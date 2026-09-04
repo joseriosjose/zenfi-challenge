@@ -21,7 +21,12 @@ export function MarcoDispositivo({
   }, [vista]);
 
   return (
-    <div className="flex min-h-dvh justify-center bg-ground py-0 sm:bg-hairline sm:py-8">
+    /* `h-dvh` y no `min-h-dvh`: con `min-` el marco crecia con el contenido,
+       el documento entero scrolleaba y la rueda movia el telefono en vez de la
+       lista. Ademas el marco es el bloque contenedor de los `fixed` de adentro
+       (ver abajo), asi que si mide mas que la ventana el bottom sheet se ancla
+       a algo mas alto que la pantalla y queda fuera de vista. */
+    <div className="flex h-dvh justify-center bg-ground py-0 sm:bg-hairline sm:py-8">
       {/*
         `transform-gpu` no es por rendimiento: un elemento con transform se
         vuelve el bloque contenedor de sus descendientes `fixed`. Sin esto, un
@@ -31,8 +36,8 @@ export function MarcoDispositivo({
       */}
       <div
         className="
-          relative flex w-full max-w-[390px] transform-gpu flex-col overflow-hidden bg-ground
-          sm:h-[844px] sm:rounded-[44px] sm:border-[10px] sm:border-ink sm:shadow-sheet
+          relative flex h-full w-full max-w-[390px] transform-gpu flex-col overflow-hidden bg-ground
+          sm:h-[844px] sm:max-h-full sm:rounded-[44px] sm:border-[10px] sm:border-ink sm:shadow-sheet
         "
       >
         <div ref={contenedor} className="flex-1 overflow-y-auto overscroll-contain">
