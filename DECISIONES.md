@@ -60,4 +60,5 @@ Nada se corrige en el archivo: se interpreta al leer y el registro original qued
 
 ## Tiempo invertido
 
-- _(pendiente)_
+~3.5 horas, dentro del time-box. No paré por falta de tiempo: lo que no
+construí está en "qué dejo fuera" porque decidí dejarlo fuera.

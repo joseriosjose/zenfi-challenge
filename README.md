@@ -5,6 +5,17 @@ Everything else —styling, libraries, folder structure, state— is up to you.
 
 The full statement is in [`RETO.md`](./RETO.md).
 
+---
+
+**Desplegado:** https://zenfi-challenge.vercel.app/
+
+**Las decisiones están en [`DECISIONES.md`](./DECISIONES.md)** — qué muestro y qué dejé fuera, los
+supuestos, lo que encontré en los datos y cómo usé IA.
+
+Se corre igual que el template: `pnpm install` y `pnpm dev`.
+
+---
+
 ## Your repo
 
 This repo is a **template**. Hit **"Use this template" → "Create a new repository"** and create it
